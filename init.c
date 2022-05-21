@@ -19,6 +19,11 @@ void	setup(void)
 void	init(void)
 {
 	memset(cmd, 0, sizeof(cmd));
+	for (int i = 0; i < PIPELINE; i++)
+	{
+		cmd[i].infd = 0;
+		cmd[i].outfd = 1;
+	}
 	memset(cmdline, 0, sizeof(cmdline));
 	memset(avline, 0, sizeof(avline));
 	lineptr = cmdline;

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <limits.h>
 #include "externs.h"
 
 void print_command()
@@ -113,7 +114,7 @@ void	shell_loop(void)
 	{
 		printf("[minishell]$ ");
 		init();
-		fflush(stdout);
+		// fflush(stdout);
 		if (read_command() == -1)
 			break;
 		parse_command();
@@ -165,6 +166,39 @@ int	parse_command(void)
 	}
 }
 
+void	forkexec(COMMAND *pcmd)
+{
+	pid_t	pid;
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork");
+		exit(EXIT_FAILURE);
+	}
+	if (pid > 0)
+	{
+		wait(NULL);
+	}
+	if (pid == 0)
+	{
+		if (pcmd->infd != 0)
+		{
+			close(0);
+			dup(pcmd->infd);
+		}
+		if (pcmd->outfd != 1)
+		{
+			close(1);
+			dup(pcmd->outfd);
+		}
+		for (int i = 3; i < OPEN_MAX; i++)
+			close(i);
+		execvp(pcmd->args[0], pcmd->args);
+		exit(EXIT_FAILURE);
+	}
+}
+
 int	execute_command(void)
 {
 	/*pid_t	pid;
@@ -178,5 +212,23 @@ int	execute_command(void)
 	if (pid == 0)
 		execvp(cmd.args[0], cmd.args);
 	wait(NULL);*/
+	int	i;
+	int	fd;
+	int	fds[2];
+
+	for (i = 0; i < cmd_count; i++)
+	{
+		if (i < cmd_count - 1)
+		{
+			pipe(fds);
+			cmd[i].outfd = fds[1];
+			cmd[i + 1].infd = fds[0];
+		}
+		forkexec(&cmd[i]);
+		if ((fd = cmd[i].infd) != 0)
+			close(fd);
+		if ((fd = cmd[i].outfd) != 1)
+			close(fd);
+	}
 	return (0);
 }
