@@ -9,8 +9,8 @@
 typedef struct	command
 {
 	char	*args[MAXARG + 1];
-	int	infd;
-	int	outfd;
-} COMMAND;
+	int		infd;
+	int		outfd;
+} 				COMMAND;
 
 #endif

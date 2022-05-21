@@ -19,7 +19,13 @@ void	setup(void)
 void	init(void)
 {
 	memset(cmd, 0, sizeof(cmd));
-	memset(&cmdline, 0, sizeof(cmdline));
+	memset(cmdline, 0, sizeof(cmdline));
+	memset(avline, 0, sizeof(avline));
 	lineptr = cmdline;
 	avptr = avline;
+	memset(infile, 0, sizeof(infile));
+	memset(outfile, 0, sizeof(outfile));
+	cmd_count = 0;
+	backgnd = 0;
+	append = 0;
 }

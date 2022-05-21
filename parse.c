@@ -7,6 +7,30 @@
 #include <sys/types.h>
 #include "externs.h"
 
+void print_command()
+{
+	int	i;
+	int	j;
+
+	printf("cmd_count = %d\n", cmd_count);
+	if (infile[0] != '\0')
+		printf("infile = [%s]\n", infile);
+	if (outfile[0] != '\0')
+		printf("outfile = [%s]\n", outfile);
+	i = 0;
+	while (i < cmd_count)
+	{
+		j = 0;
+		while (cmd[i].args[j] != NULL)
+		{
+			printf("[%s] ", cmd[i].args[j]);
+			j++;
+		}
+		printf("\n");
+		i++;
+	}
+}
+
 void	get_command(int i)
 {
 	int	j;
@@ -50,11 +74,37 @@ void	get_command(int i)
 
 int	check(const char *str)
 {
+	char	*p;
+
+	while (*lineptr == ' '|| *lineptr == '\t')
+		lineptr++;
+	p = lineptr;
+	while (*str != '\0'&& *str == *p)
+	{
+		str++;
+		p++;
+	}
+	if (*str == '\0')
+	{
+		lineptr = p;
+		return (1);
+	}
 	return (0);
 }
 
 void	getname(char *name)
 {
+	while (*lineptr == ' ' || *lineptr == '\t')
+		lineptr++;
+
+	while (*lineptr != '\0' && *lineptr != ' ' &&
+		*lineptr != '\t' && *lineptr != '>' &&
+		*lineptr != '<' && *lineptr != '|' &&
+		*lineptr != '&' && *lineptr != '\n')
+	{
+		*name++ = *lineptr++;
+	}
+	*name = '\0';
 }
 
 void	shell_loop(void)
@@ -67,6 +117,7 @@ void	shell_loop(void)
 		if (read_command() == -1)
 			break;
 		parse_command();
+		print_command();
 		execute_command();
 	}
 	printf("\nexit\n");
@@ -81,11 +132,13 @@ int	read_command(void)
 
 int	parse_command(void)
 {
+	if (check("\n"))
+		return (0);
 	get_command(0);
 	if (check("<"))
 		getname(infile);
 	int	i;
-	for (i = 0; i < PIPELINE; i++)
+	for (i = 1; i < PIPELINE; i++)
 	{
 		if (check("|"))
 			get_command(i);
@@ -93,7 +146,11 @@ int	parse_command(void)
 			break;
 	}
 	if (check(">"))
+	{
+		if (check(">"))
+			append = 1;
 		getname(outfile);
+	}
 	if (check("&"))
 		backgnd = 1;
 	if (check("\n"))

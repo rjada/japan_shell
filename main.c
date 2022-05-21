@@ -12,8 +12,9 @@ char	infile[MAXLINE + 1];
 char	outfile[MAXLINE + 1];
 COMMAND	cmd[PIPELINE];
 
-int	cmd_count;
-int	backgnd;
+int		cmd_count;
+int		backgnd;
+int		append;
 
 int	main(void)
 {
