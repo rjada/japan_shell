@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <limits.h>
+#include <fcntl.h>
 #include "externs.h"
 
 void print_command()
@@ -135,6 +136,8 @@ int	parse_command(void)
 {
 	if (check("\n"))
 		return (0);
+	if (check("<"))
+		getname(infile);
 	get_command(0);
 	if (check("<"))
 		getname(infile);
@@ -178,7 +181,7 @@ void	forkexec(COMMAND *pcmd)
 	}
 	if (pid > 0)
 	{
-		wait(NULL);
+		// wait(NULL);
 	}
 	if (pid == 0)
 	{
@@ -216,6 +219,16 @@ int	execute_command(void)
 	int	fd;
 	int	fds[2];
 
+	if (infile[0] != '\0')
+		cmd[0].infd = open(infile, O_RDONLY);
+	if (outfile[0] != '\0')
+	{
+		if (append)
+			cmd[cmd_count - 1].outfd = open(outfile, O_WRONLY | O_CREAT | O_APPEND, 0644);
+		else
+			cmd[cmd_count - 1].outfd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	}
+
 	for (i = 0; i < cmd_count; i++)
 	{
 		if (i < cmd_count - 1)
@@ -229,6 +242,7 @@ int	execute_command(void)
 			close(fd);
 		if ((fd = cmd[i].outfd) != 1)
 			close(fd);
+		wait(NULL);
 	}
 	return (0);
 }
